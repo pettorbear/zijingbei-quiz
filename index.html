@@ -156,10 +156,9 @@ function tabbar(on){function b(k,t){return '<button data-act="'+k+'"'+(on===k?' 
 
 var VIEW={
 home:function(){var wl=wrongLists(),h='<div class="top"><h1 class="serif">紫荊杯刷題</h1><span class="chip">'+cloudLabel()+'</span></div>';
- h+='<h2 class="serif">選擇題庫</h2><div class="stack">';
- BANKS.forEach(function(b){var ps=pool(b.k),m=ps.filter(function(x){return status(S.q[x.id])==='mastered'}).length;h+='<button class="bank'+(S.set.bank===b.k?' on':'')+'" data-act="bank" data-k="'+b.k+'" aria-pressed="'+(S.set.bank===b.k)+'"><span class="row between"><b>'+esc(b.name)+'</b>'+(b.tag?'<span class="chip red">'+b.tag+'</span>':'')+'</span><span class="xs muted">'+ps.length+' 題，已掌握 '+m+'</span><div class="bar"><i style="width:'+(ps.length?m/ps.length*100:0)+'%"></i></div></button>'});
- var sp=pool(S.set.bank),si=Math.min(S.seq[S.set.bank]||0,sp.length),done=si>=sp.length;
- h+='</div><h2 class="serif">練習模式</h2><div class="stack"><button class="mode" data-act="seq"><b>順序刷題</b><span class="xs muted">'+esc(BNAME[S.set.bank])+'題庫由第 1 題刷到第 '+sp.length+' 題，'+(done?'已刷完一遍，再按會從頭開始':si?'已刷到第 '+si+' 題，繼續':'從第 1 題開始')+'</span><div class="bar"><i style="width:'+(sp.length?si/sp.length*100:0)+'%"></i></div></button><div class="grid2"><button class="mode" data-act="random" data-n="50"><b>隨機 50 題</b><span class="xs muted">全部題庫混合抽 50 題</span></button><button class="mode" data-act="random" data-n="100"><b>隨機 100 題</b><span class="xs muted">全部題庫混合抽 100 題</span></button></div><button class="mode" data-act="redo"><b>錯題重練'+(wl.wrong.length?' <span class="chip red">'+wl.wrong.length+'</span>':'')+'</b><span class="xs muted">答錯或按「不確定」的題會進來，在不同日子連續答對 3 次才移出</span></button></div>';
+ h+='<h2 class="serif">順序刷題</h2><div class="xs muted" style="margin:-4px 0 8px">點一下題庫就開始刷，會自動記住刷到第幾題</div><div class="stack">';
+ BANKS.forEach(function(b){var ps=pool(b.k),si=Math.min(S.seq[b.k]||0,ps.length),fin=si>=ps.length;h+='<button class="bank" data-act="bankgo" data-k="'+b.k+'"><span class="row between"><b>'+esc(b.name)+'</b>'+(b.tag?'<span class="chip red">'+b.tag+'</span>':'')+'</span><span class="xs muted">共 '+ps.length+' 題，'+(fin?'已刷完一遍，點一下從頭再刷':si?'已刷到第 '+si+' 題，點一下繼續':'點一下從第 1 題開始')+'</span><div class="bar"><i style="width:'+(ps.length?si/ps.length*100:0)+'%"></i></div></button>'});
+ h+='</div><h2 class="serif">其他模式</h2><div class="stack"><div class="grid2"><button class="mode" data-act="random" data-n="50"><b>隨機 50 題</b><span class="xs muted">全部題庫混合抽 50 題</span></button><button class="mode" data-act="random" data-n="100"><b>隨機 100 題</b><span class="xs muted">全部題庫混合抽 100 題</span></button></div><button class="mode" data-act="redo"><b>錯題重練'+(wl.wrong.length?' <span class="chip red">'+wl.wrong.length+'</span>':'')+'</b><span class="xs muted">答錯或按「不確定」的題會進來，在不同日子連續答對 3 次才移出</span></button></div>';
  return h+tabbar('home')},
 
 learn:function(){var x=BYID[sess.ids[sess.i]],h=head('學習卡',(sess.i+1)+' / '+sess.ids.length)+'<div class="prog"><i style="width:'+((sess.i)/sess.ids.length*100)+'%"></i></div><div class="card stack">'+chips(x)+'<div class="qtext serif" style="margin:0">'+esc(x.q)+'</div>';
@@ -213,8 +212,7 @@ parent:function(){var T=today(),ids=Object.keys(S.q).filter(function(id){return 
 
 var ACT={
 home:function(){if(tick){clearInterval(tick);tick=null}sess=null;V={name:'home'}},wrongbook:function(){V={name:'wrongbook',tab:'wrong'}},parent:function(){V={name:'parent'}},
-bank:function(el){S.set.bank=el.getAttribute('data-k');S.set.cat='';save()},
-seq:function(){var ps=pool(S.set.bank),i=S.seq[S.set.bank]||0;if(i>=ps.length){i=0;S.seq[S.set.bank]=0;save();toast('這份題庫已刷完一遍，從第 1 題重新開始')}start('seq',ps.slice(i).map(function(x){return x.id}),{seqBank:S.set.bank,seqBase:i});return true},
+bankgo:function(el){var k=el.getAttribute('data-k');S.set.bank=k;S.set.cat='';var ps=pool(k),i=S.seq[k]||0;if(i>=ps.length){i=0;S.seq[k]=0;toast('這份題庫已刷完一遍，從第 1 題重新開始')}save();start('seq',ps.slice(i).map(function(x){return x.id}),{seqBank:k,seqBase:i});return true},
 random:function(el){var n=+el.getAttribute('data-n')||50;start('random',shuffle(BANK).slice(0,n).map(function(x){return x.id}));return true},
 redo:function(){var wl=wrongLists();start('redo',shuffle(wl.wrong.concat(wl.firming)));return true},
 reveal:function(){sess.reveal=true},
